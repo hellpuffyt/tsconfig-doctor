@@ -1,0 +1,7 @@
+{
+  "extends": "./middle.json",
+  "compilerOptions": {
+    "strict": false
+  },
+  "include": ["src"]
+}

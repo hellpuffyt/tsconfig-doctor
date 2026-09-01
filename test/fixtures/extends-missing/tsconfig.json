@@ -1,0 +1,6 @@
+{
+  "extends": "./nowhere.json",
+  "compilerOptions": {
+    "strict": true
+  }
+}

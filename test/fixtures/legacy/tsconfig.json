@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "target": "es3",
+    "module": "commonjs",
+    "charset": "utf8",
+    "out": "bundle.js",
+    "suppressImplicitAnyIndexErrors": true,
+    "importsNotUsedAsValues": "preserve",
+    "strict": true,
+    "moduleDetection": "force",
+    "esModuleInterop": true,
+    "isolatedModules": true,
+    "verbatimModuleSyntax": true,
+    "noEmit": true
+  },
+  "include": ["src"]
+}

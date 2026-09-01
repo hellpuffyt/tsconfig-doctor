@@ -1,0 +1,10 @@
+{
+  // A line comment, which plain JSON.parse rejects.
+  "compilerOptions": {
+    /* A block comment, likewise. */
+    "strict": true,
+    "target": "es2022", // trailing line comment
+    "moduleDetection": "force",
+  },
+  "include": ["src"],
+}

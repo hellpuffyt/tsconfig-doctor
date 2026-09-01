@@ -1,0 +1,21 @@
+{
+  // Type-checking for the test suite.
+  //
+  // It exists separately for one reason, and the reason is worth reading: with
+  // `exactOptionalPropertyTypes` on, `vite`'s published `.d.ts` does not
+  // type-check against `rollup`'s — `Plugin.load` differs by an optional
+  // property that one side declares as `boolean` and the other as
+  // `boolean | undefined`. That is a genuine error in a dependency's shipped
+  // declarations, and the only way to compile the test files that import
+  // `vitest` is to stop checking declaration files.
+  //
+  // So this config sets `skipLibCheck`, and tsconfig-doctor reports TSD017
+  // against it — correctly. The src configuration does not need it, which is
+  // why the two are separate rather than one config with the check switched
+  // off for everything.
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "skipLibCheck": true
+  },
+  "include": ["test", "vitest.config.ts", "eslint.config.js"]
+}

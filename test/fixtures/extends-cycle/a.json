@@ -1,0 +1,4 @@
+{
+  "extends": "./b.json",
+  "compilerOptions": { "target": "es2022" }
+}

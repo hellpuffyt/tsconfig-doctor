@@ -1,0 +1,94 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: test (node ${{ matrix.node-version }}, ${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        node-version: ["20", "22", "24"]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: npm
+
+      - name: install
+        run: npm ci
+
+      - name: test
+        run: npm test
+
+      # The published entry point is dist/bin.js; building and running it
+      # here is what proves the bin actually resolves on every platform.
+      - name: build and run the console script
+        run: npm run build && node dist/bin.js --version
+
+  quality:
+    name: types, lint and coverage
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: install
+        run: npm ci
+
+      - name: tsc --noEmit (both projects)
+        run: npm run typecheck
+
+      - name: eslint
+        run: npm run lint
+
+      # vitest.config.ts fails the run below the thresholds it declares.
+      - name: coverage
+        run: npm run coverage
+
+  dogfood:
+    name: the tool judges this repository's own configs
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: install and build
+        run: npm ci && npm run build
+
+      # Exit codes are the documented interface: 0 for the repo's own clean
+      # configs, 1 for the deliberately messy example. Both are asserted
+      # exactly — "ran without crashing" proves nothing.
+      - name: own configs are clean, the example is not
+        run: |
+          set -euo pipefail
+          node dist/bin.js tsconfig.json
+          node dist/bin.js tsconfig.build.json
+          set +e
+          node dist/bin.js examples --fail-on warning > /dev/null
+          example=$?
+          set -e
+          test "$example" = "1"
