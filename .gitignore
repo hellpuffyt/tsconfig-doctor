@@ -5,3 +5,8 @@ coverage/
 .DS_Store
 npm-debug.log*
 .vitest-cache/
+
+# Fixture trees are test data, not dependencies: the extends-package
+# fixture needs a committed fake node_modules for the bare-specifier
+# resolution test, and CI proved an ignored one simply is not there.
+!test/fixtures/**/node_modules/
