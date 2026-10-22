@@ -191,7 +191,7 @@ Every option therefore remembers which file declared it, which is why the
 report points at the base config rather than the one you named:
 
 ```
-$ tsconfig-doctor packages/api
+$ tsconfig-doctor packages/api --only TSD084      # run in test/fixtures/inherited; excerpt
 packages/api/tsconfig.json
 extends: base/tsconfig.base.json -> packages/api/tsconfig.json
 
