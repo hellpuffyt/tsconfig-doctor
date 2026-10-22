@@ -4,12 +4,22 @@ Diagnose the `tsconfig.json` settings that silently change what your code does,
 and explain the consequence of each rather than the setting.
 
 ```bash
-npm install -D tsconfig-doctor
-npx tsconfig-doctor
+git clone https://github.com/hellpuffyt/tsconfig-doctor.git
+cd tsconfig-doctor
+npm install
+npm run build
+node dist/bin.js /path/to/your/project      # or: npm link, then `tsconfig-doctor`
 ```
 
+This package is **not published to npm**. The `tsconfig-doctor` name on the
+npm registry belongs to an unrelated project by a different author, so
+`npm install tsconfig-doctor` / `npx tsconfig-doctor` install *that* tool, not
+this one. The `tsconfig-doctor` examples below assume you have linked this
+repository's build with `npm link` (or substitute `node dist/bin.js`).
+
 ```
-$ npx tsconfig-doctor examples --min-severity warning
+$ tsconfig-doctor examples --only TSD029
+examples/tsconfig.json
 
 warning  TSD029  paths
   path aliases survive into the emitted JavaScript unchanged, and fail at
@@ -24,6 +34,8 @@ warning  TSD029  paths
       natively and TypeScript understands. If you keep `paths`, make the runtime
       resolution part of the build and test the built output, not just the
       sources.
+
+1 warning
 ```
 
 ## Why this exists
@@ -54,10 +66,17 @@ publish a library. A tool that only ever says "turn it on" gets muted.
 ## What it reports
 
 Fifty-six rules, plus ten codes for configs that do not load. Severity is not a
-measure of how annoyed the author is: `error` means `tsc` rejects the option or
-two options contradict each other, `warning` means the build succeeds and
-behaves differently from the obvious reading, `info` means a defensible choice
-with a consequence worth knowing.
+measure of how annoyed the author is: `error` means `tsc` rejects the option,
+two options contradict each other, or the setting turns code that type-checks
+into code that fails at runtime or on another platform (`TSD001` strict off,
+`TSD021`, `TSD062`, `TSD085`); `warning` means the build succeeds and behaves
+differently from the obvious reading; `info` means a defensible choice with a
+consequence worth knowing.
+
+Every rule that says "tsc rejects this (TS*nnnn*)" is checked against the real
+compiler installed in this repository by `test/tsc-claims.test.ts`; the
+version-history claims for `TSD042`/`TSD082` were checked against TypeScript
+5.4.5, 5.5.4, 5.6.3, 5.7.3, 5.8.3 and 5.9.3.
 
 ### Type safety
 
@@ -95,7 +114,7 @@ with a consequence worth knowing.
 | `TSD025` | `isolatedModules` | Re-exported types and `const enum` pass `tsc` and break every transpile-only build |
 | `TSD026` | `moduleDetection` | Deleting the last `export` from a file turns its declarations into globals |
 | `TSD027` | `allowImportingTsExtensions` | Rejected (TS5096) in a project that emits |
-| `TSD028` | `resolveJsonModule` | Inert (TS5071) under classic resolution |
+| `TSD028` | `resolveJsonModule` | Rejected (TS5070) under classic resolution |
 | `TSD029` | `paths` | Aliases are never rewritten on emit; `ERR_MODULE_NOT_FOUND` on start-up |
 
 ### Target and emit
@@ -104,7 +123,7 @@ with a consequence worth knowing.
 | --- | --- | --- |
 | `TSD040` | `target` | Unset means **ES5**: `Promise` and `Object.entries` are undeclared and every class is rewritten |
 | `TSD041` | `target` | Below ES2020, syntax is rewritten — the report names only the rewrites your target performs |
-| `TSD042` | `target` | `es3` is an error since TypeScript 5.5 and removed in 6.0 |
+| `TSD042` | `target` | `es3` is rejected unless `ignoreDeprecations` (TS5107) up to 5.5, and removed (TS5108) from 5.6 |
 | `TSD043` | `useDefineForClassFields` | Class field semantics are decided by `target` alone, and flip at ES2022 |
 | `TSD044` | `outDir` | Compiled `.js` lands beside every source file |
 | `TSD045` | `rootDir` | Adding one file outside `src` moves `dist/index.js` to `dist/src/index.js` |
@@ -115,7 +134,7 @@ with a consequence worth knowing.
 | `TSD050` | `lib` | `lib` **replaces** the target defaults instead of adding to them |
 | `TSD051` | `jsx` | `"react"` is the classic runtime: every file needs React in scope or throws |
 | `TSD052` | `experimentalDecorators` | The 2015 proposal, not the standard decorators TypeScript 5 implements |
-| `TSD053` | `emitDecoratorMetadata` | Emits nothing at all without `experimentalDecorators`, so DI by type fails |
+| `TSD053` | `emitDecoratorMetadata` | Rejected (TS5052) without `experimentalDecorators`: there is no metadata for standard decorators |
 | `TSD054` | `downlevelIteration` | Below ES2015, spreading a `Map` or a generator iterates zero times, silently |
 
 ### Program inputs
@@ -134,8 +153,8 @@ with a consequence worth knowing.
 | Code | Option | What silently changes |
 | --- | --- | --- |
 | `TSD080` | `composite` | `tsc -p` ignores `references` entirely and checks the sources under *this* project's options |
-| `TSD081` | `declaration` | `composite` with `"declaration": false` is rejected (TS5069) |
-| `TSD082` | nine options | Deprecated in 5.0, an error since 5.5, removed in 6.0 — the build breaks on a compiler upgrade |
+| `TSD081` | `declaration` | `composite` with `"declaration": false` is rejected (TS6304) |
+| `TSD082` | nine options | Deprecated in 5.0 (TS5101 unless `ignoreDeprecations`), removed in 5.6 (TS5102, not silenceable) — the build breaks on a compiler upgrade |
 | `TSD083` | any | The option is not a compiler option at all and does nothing |
 | `TSD084` | `outDir`, `rootDir`, `baseUrl`, … | An inherited relative path still resolves against the base config's directory |
 | `TSD085` | `strict` | One line in a leaf config undoes the whole strict family the base advertises |
@@ -172,7 +191,7 @@ Every option therefore remembers which file declared it, which is why the
 report points at the base config rather than the one you named:
 
 ```
-$ npx tsconfig-doctor packages/api
+$ tsconfig-doctor packages/api
 packages/api/tsconfig.json
 extends: base/tsconfig.base.json -> packages/api/tsconfig.json
 
@@ -200,7 +219,7 @@ because `tsc` will not.
 **It recovers.** A missing comma is a diagnostic, not the end of the parse:
 
 ```
-$ npx tsconfig-doctor test/fixtures/malformed/missing-comma.json --only TSD901
+$ tsconfig-doctor test/fixtures/malformed/missing-comma.json --only TSD901
 error    TSD901
   the config does not parse cleanly: expected ',' but found "target"
   at test/fixtures/malformed/missing-comma.json:4:5
