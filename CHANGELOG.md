@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+
+### Security
+
+- Dev dependencies: `vitest`/`@vitest/coverage-v8` 2.x -> 4.1.12, clearing the
+  test-toolchain advisories (tinypool GHSA-5gmw-xhrv-c9v3 / GHSA-85c8-ppgw-ccpr,
+  esbuild GHSA-67mh-4wv8-2f99, @vitest/mocker GHSA-qxg6-89mg-rqv8). `npm audit` is clean.
+
 ### Fixed
 
 - Rule text now quotes the diagnostics tsc actually reports: `TSD028`
