@@ -2,7 +2,6 @@
 
 ## Unreleased
 
-
 ### Security
 
 - Dev dependencies: `vitest`/`@vitest/coverage-v8` 2.x -> 4.1.12, clearing the
