@@ -41,7 +41,9 @@ function ruleText(options: Record<string, unknown>, code: string): string {
 const MAJOR_MINOR = ts.versionMajorMinor;
 const AT_LEAST_5_6 = Number(MAJOR_MINOR.split('.')[0]) > 5 || Number(MAJOR_MINOR.split('.')[1]) >= 6;
 
-describe(`rule claims against the installed TypeScript ${ts.version}`, () => {
+// Each case builds a real in-process TypeScript program; on a loaded CI runner
+// TSD082 (one program per deprecated option) can exceed the 5 s default.
+describe(`rule claims against the installed TypeScript ${ts.version}`, { timeout: 30_000 }, () => {
   const cases: [string, Record<string, unknown>, number][] = [
     ['TSD016', { strictPropertyInitialization: true, strictNullChecks: false }, 5052],
     ['TSD027', { allowImportingTsExtensions: true }, 5096],
