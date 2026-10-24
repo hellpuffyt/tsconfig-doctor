@@ -1,5 +1,28 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+
+- Rule text now quotes the diagnostics tsc actually reports: `TSD028`
+  TS5070 (rejected, not "inert"), `TSD081` TS6304, `TSD053` TS5052
+  (rejected, not "emits nothing").
+- `TSD042`/`TSD082`: the deprecated options and `target: "es3"` were removed
+  in TypeScript 5.6 (TS5108/TS5102) and `ignoreDeprecations` no longer
+  silences them; `TSD082` therefore stays an `error` under
+  `ignoreDeprecations` instead of softening to a `warning`.
+- README: the package is not on npm and the npm name belongs to an unrelated
+  project, so the install instructions now build from a clone; the severity
+  definition matches what the rules do; the first example's command produces
+  exactly the output shown.
+- Non-major dev-dependency audit fixes.
+
+### Added
+
+- `test/tsc-claims.test.ts`: checks every quoted TS diagnostic against the
+  installed TypeScript compiler.
+- `SECURITY.md`, `.editorconfig`, `docs/PRODUCTION_READINESS.md`.
+
 ## 0.1.0 — 2026-09-01
 
 Initial release.

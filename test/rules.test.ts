@@ -524,13 +524,18 @@ describe('structure and deprecations', () => {
     expect(findByCode(findings({ charset: 'utf8' }), 'TSD082')?.severity).toBe('error');
   });
 
-  it('TSD082 softens to a warning under ignoreDeprecations', () => {
+  // Changed during the production-readiness audit: this used to expect a
+  // warning ("failure postponed to 6.0"). Measured against real compilers,
+  // `ignoreDeprecations: "5.0"` silences these options only up to TypeScript
+  // 5.5; 5.6.3 through 5.9.3 reject them with TS5102 regardless
+  // (see test/tsc-claims.test.ts), so the finding stays an error.
+  it('TSD082 stays an error under ignoreDeprecations, and says why', () => {
     const finding = findByCode(
       findings({ charset: 'utf8', ignoreDeprecations: '5.0' }),
       'TSD082',
     );
-    expect(finding?.severity).toBe('warning');
-    expect(finding?.consequence).toContain('postponed');
+    expect(finding?.severity).toBe('error');
+    expect(finding?.consequence).toContain('only helps on 5.5 and older');
   });
 
   it('TSD082 covers every option in the deprecation table', () => {

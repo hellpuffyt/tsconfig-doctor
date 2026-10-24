@@ -601,8 +601,8 @@ export const RULES: readonly Rule[] = [
       if (resolution !== 'classic') return undefined;
       return hit(
         'error',
-        '`resolveJsonModule` does nothing under classic resolution',
-        'tsc reports TS5071 for this combination: classic resolution has no concept of resolving a file by extension inside `node_modules`, so JSON imports are not resolved and the option is inert.',
+        '`resolveJsonModule` is rejected under classic resolution',
+        'tsc refuses this combination (TS5070), so the project does not compile: classic resolution has no concept of resolving a file by extension inside `node_modules`, so JSON imports could not be resolved anyway.',
         'Use `"moduleResolution": "bundler"`, `"node16"` or `"nodenext"`.',
       );
     },
@@ -684,8 +684,8 @@ export const RULES: readonly Rule[] = [
       if (ctx.target !== 'es3') return undefined;
       return hit(
         'error',
-        '`target: "es3"` was deprecated in TypeScript 5.0 and is removed in 6.0',
-        'Since TypeScript 5.5 this is an error unless `ignoreDeprecations` is set, so the project stops building on a compiler upgrade rather than on a code change — which makes it look like the upgrade broke something.',
+        '`target: "es3"` was deprecated in TypeScript 5.0 and removed in 5.6',
+        'TypeScript 5.0–5.5 reject it (TS5107) unless `"ignoreDeprecations": "5.0"` is set; from 5.6 it has been removed (TS5108) and `ignoreDeprecations` no longer helps. A project that still sets it stops building on a compiler upgrade rather than on a code change — which makes it look like the upgrade broke something.',
         'Move to `"es5"` at minimum. Nothing that runs JavaScript today needs ES3.',
       );
     },
@@ -844,8 +844,8 @@ export const RULES: readonly Rule[] = [
       if (ctx.bool('experimentalDecorators') === true) return undefined;
       return hit(
         'error',
-        '`emitDecoratorMetadata` emits nothing without `experimentalDecorators`',
-        'Design-time type metadata is only produced for the legacy decorator implementation. With the standard decorators, no `design:type` metadata is written at all — so a dependency-injection container that resolves constructor parameters by type finds nothing and fails at runtime with an unhelpful "cannot resolve dependency".',
+        '`emitDecoratorMetadata` is rejected without `experimentalDecorators`',
+        'tsc refuses this combination (TS5052), so the project does not compile. The reason is that design-time type metadata only exists for the legacy decorator implementation: with standard decorators there is no `design:type` metadata to emit, and a dependency-injection container that resolves constructor parameters by type would find nothing.',
         'Set `"experimentalDecorators": true` alongside it, or drop `emitDecoratorMetadata` and register dependencies explicitly by token.',
       );
     },
@@ -984,7 +984,7 @@ export const RULES: readonly Rule[] = [
       return hit(
         'error',
         '`composite` requires declarations, so `"declaration": false` is rejected',
-        'A composite project is consumed by other projects through its `.d.ts` output; that is what allows tsc to build it once instead of re-reading its sources. tsc reports TS5069 and refuses to build.',
+        'A composite project is consumed by other projects through its `.d.ts` output; that is what allows tsc to build it once instead of re-reading its sources. tsc reports TS6304 and refuses to build.',
         'Remove `"declaration": false`, or remove `composite` if this project is not referenced by another.',
       );
     },
@@ -998,9 +998,9 @@ export const RULES: readonly Rule[] = [
         if (ctx.get(option) === undefined) continue;
         hits.push(
           hit(
-            ignoring ? 'warning' : 'error',
-            `\`${option}\` was deprecated in TypeScript 5.0 and is removed in 6.0`,
-            `${why[0]?.toUpperCase()}${why.slice(1)}. Since TypeScript 5.5 the option is an error unless \`ignoreDeprecations\` is set${ignoring ? ', which this config does — so the failure is merely postponed to the 6.0 upgrade' : ', so a compiler upgrade breaks the build with no source change to blame'}.`,
+            'error',
+            `\`${option}\` was deprecated in TypeScript 5.0 and removed in 5.6`,
+            `${why[0]?.toUpperCase()}${why.slice(1)}. TypeScript 5.0–5.5 reject the option (TS5101) unless \`"ignoreDeprecations": "5.0"\` is set; from 5.6 it has been removed (TS5102) and \`ignoreDeprecations\` no longer silences it${ignoring ? ' — so the `ignoreDeprecations` in this config only helps on 5.5 and older' : ''}. A compiler upgrade breaks the build with no source change to blame.`,
             `Remove \`${option}\` and adopt its replacement before upgrading.`,
             option,
           ),
