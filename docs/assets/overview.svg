@@ -1,0 +1,84 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="440" viewBox="0 0 1200 440" role="img" aria-labelledby="t d">
+  <title id="t">tsconfig-doctor pipeline</title>
+  <desc id="d">A tsconfig.json and the configs it extends are read through a Host, parsed by the recovering JSONC parser, merged by loadConfig into a ResolvedConfig that remembers which file declared each option, checked by analyze against 56 rules, and printed by formatText or formatJson with an exit code from --fail-on.</desc>
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#A3AAA6"/></marker>
+    <marker id="g" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#3FBF8A"/></marker>
+  </defs>
+  <rect width="1200" height="440" fill="#0C0D0D"/>
+  <text x="40" y="48" fill="#EEEAE2" font-family="-apple-system,Segoe UI,Helvetica,Arial,sans-serif" font-size="20" font-weight="600">tsconfig-doctor: from config files to findings</text>
+  <text x="40" y="74" fill="#A3AAA6" font-family="-apple-system,Segoe UI,Helvetica,Arial,sans-serif" font-size="14">Only the Host touches the file system. Everything to its right is pure and runs the same against in-memory configs.</text>
+
+  <g font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace">
+    <!-- inputs -->
+    <rect x="40" y="110" width="170" height="200" rx="8" fill="#17191A" stroke="#2A2E2D"/>
+    <text x="56" y="138" fill="#EEEAE2" font-size="14">input files</text>
+    <rect x="56" y="154" width="138" height="34" rx="4" fill="#0C0D0D" stroke="#2A2E2D"/>
+    <text x="66" y="176" fill="#A3AAA6" font-size="12">tsconfig.json</text>
+    <rect x="56" y="198" width="138" height="34" rx="4" fill="#0C0D0D" stroke="#2A2E2D"/>
+    <text x="66" y="220" fill="#A3AAA6" font-size="12">base.json</text>
+    <rect x="56" y="242" width="138" height="34" rx="4" fill="#0C0D0D" stroke="#2A2E2D"/>
+    <text x="66" y="264" fill="#A3AAA6" font-size="12">node_modules/…</text>
+    <text x="56" y="296" fill="#A3AAA6" font-size="11">extends targets</text>
+
+    <!-- host -->
+    <rect x="240" y="110" width="160" height="200" rx="8" fill="#17191A" stroke="#2A2E2D"/>
+    <text x="256" y="138" fill="#EEEAE2" font-size="14">Host</text>
+    <text x="256" y="162" fill="#A3AAA6" font-size="11">readFile(path)</text>
+    <text x="256" y="196" fill="#A3AAA6" font-size="11">createNodeHost</text>
+    <text x="256" y="216" fill="#A3AAA6" font-size="11">createMemoryHost</text>
+    <text x="256" y="250" fill="#A3AAA6" font-size="11">config.ts</text>
+
+    <!-- jsonc -->
+    <rect x="430" y="110" width="170" height="200" rx="8" fill="#17191A" stroke="#2A2E2D"/>
+    <text x="446" y="138" fill="#EEEAE2" font-size="14">parseJsonc</text>
+    <text x="446" y="162" fill="#A3AAA6" font-size="11">jsonc.ts</text>
+    <text x="446" y="196" fill="#A3AAA6" font-size="11">comments, BOM,</text>
+    <text x="446" y="214" fill="#A3AAA6" font-size="11">trailing commas</text>
+    <text x="446" y="238" fill="#A3AAA6" font-size="11">recovers after</text>
+    <text x="446" y="256" fill="#A3AAA6" font-size="11">syntax errors</text>
+    <text x="446" y="290" fill="#A3AAA6" font-size="11">line:col per key</text>
+
+    <!-- loadConfig -->
+    <rect x="630" y="110" width="180" height="200" rx="8" fill="#17191A" stroke="#2A2E2D"/>
+    <text x="646" y="138" fill="#EEEAE2" font-size="14">loadConfig</text>
+    <text x="646" y="162" fill="#A3AAA6" font-size="11">config.ts</text>
+    <text x="646" y="196" fill="#A3AAA6" font-size="11">walk extends chain</text>
+    <text x="646" y="214" fill="#A3AAA6" font-size="11">child wins per key</text>
+    <text x="646" y="238" fill="#A3AAA6" font-size="11">each option keeps</text>
+    <text x="646" y="256" fill="#A3AAA6" font-size="11">its declaring file</text>
+    <text x="646" y="290" fill="#A3AAA6" font-size="11">TSD900–909</text>
+
+    <!-- analyze -->
+    <rect x="840" y="110" width="150" height="200" rx="8" fill="#17191A" stroke="#3FBF8A"/>
+    <text x="856" y="138" fill="#EEEAE2" font-size="14">analyze</text>
+    <text x="856" y="162" fill="#A3AAA6" font-size="11">analyze.ts</text>
+    <text x="856" y="196" fill="#3FBF8A" font-size="11">56 rules</text>
+    <text x="856" y="214" fill="#A3AAA6" font-size="11">rules.ts</text>
+    <text x="856" y="248" fill="#A3AAA6" font-size="11">--only --ignore</text>
+    <text x="856" y="266" fill="#A3AAA6" font-size="11">--min-severity</text>
+
+    <!-- report -->
+    <rect x="1020" y="110" width="140" height="200" rx="8" fill="#17191A" stroke="#2A2E2D"/>
+    <text x="1036" y="138" fill="#EEEAE2" font-size="14">report</text>
+    <text x="1036" y="162" fill="#A3AAA6" font-size="11">report.ts</text>
+    <text x="1036" y="196" fill="#A3AAA6" font-size="11">formatText</text>
+    <text x="1036" y="214" fill="#A3AAA6" font-size="11">formatJson</text>
+    <text x="1036" y="248" fill="#A3AAA6" font-size="11">exit 0 / 1 / 2</text>
+    <text x="1036" y="266" fill="#A3AAA6" font-size="11">via --fail-on</text>
+
+    <!-- arrows -->
+    <line x1="210" y1="210" x2="238" y2="210" stroke="#A3AAA6" stroke-width="1.5" marker-end="url(#a)"/>
+    <line x1="400" y1="210" x2="428" y2="210" stroke="#A3AAA6" stroke-width="1.5" marker-end="url(#a)"/>
+    <line x1="600" y1="210" x2="628" y2="210" stroke="#A3AAA6" stroke-width="1.5" marker-end="url(#a)"/>
+    <line x1="810" y1="210" x2="838" y2="210" stroke="#3FBF8A" stroke-width="1.5" marker-end="url(#g)"/>
+    <line x1="990" y1="210" x2="1018" y2="210" stroke="#A3AAA6" stroke-width="1.5" marker-end="url(#a)"/>
+    <!-- loop back: loadConfig asks host for each extends target -->
+    <path d="M720,310 L720,350 L320,350 L320,312" fill="none" stroke="#2A2E2D" stroke-width="1.5" marker-end="url(#a)"/>
+    <text x="400" y="372" fill="#A3AAA6" font-size="11">next extends target (path, directory or package name)</text>
+
+    <!-- bottom band: ResolvedConfig + Finding -->
+    <rect x="40" y="392" width="1120" height="32" rx="6" fill="#17191A" stroke="#2A2E2D"/>
+    <text x="56" y="413" fill="#A3AAA6" font-size="12">Finding = { code, severity, option, file, line, column, consequence, fix }.  file and line point at the config that declared the option.</text>
+  </g>
+</svg>
