@@ -3,8 +3,6 @@
 Diagnose the `tsconfig.json` settings that silently change what your code does,
 and explain the consequence of each rather than the setting.
 
-<img src="docs/assets/overview.svg" width="100%" alt="Pipeline diagram: tsconfig.json and its extends targets are read through a Host, parsed by the recovering JSONC parser, merged by loadConfig with per-option provenance, checked by analyze against 56 rules, and printed by formatText or formatJson with an exit code.">
-
 Status: version 0.1.0, not published to npm. Requires Node.js 20 or newer; CI
 runs the tests on Node 20, 22 and 24 on Ubuntu, Windows and macOS.
 
@@ -15,6 +13,16 @@ npm install
 npm run build
 node dist/bin.js /path/to/your/project      # or: npm link, then `tsconfig-doctor`
 ```
+
+## Demo
+
+<img src="docs/screenshots/examples-run.webp" width="100%" alt="Terminal capture of node dist/bin.js examples: three warnings, TSD022 moduleResolution node ignores exports maps, TSD029 path aliases fail at runtime, TSD041 target es2017 rewrites syntax, each with the file position, the consequence and a fix.">
+
+*Terminal capture: `node dist/bin.js examples` on the bundled `examples/tsconfig.json`, unedited.*
+
+<img src="docs/screenshots/malformed-and-self-check.png" width="100%" alt="Terminal capture: a config with a missing comma reports TSD901 at line 4 column 5 and exits 1; this repository's tsconfig.build.json, which extends tsconfig.json, reports no findings.">
+
+*Terminal capture: a config with a missing comma is diagnosed rather than crashing; this repository's own build config is clean.*
 
 This package is **not published to npm**. The `tsconfig-doctor` name on the
 npm registry belongs to an unrelated project by a different author, so
@@ -178,6 +186,12 @@ version-history claims for `TSD042`/`TSD082` were checked against TypeScript
 | `TSD907` | A referenced project does not exist |
 | `TSD908` | A referenced project does not set `composite: true` |
 | `TSD909` | `references` is malformed, so an entry registers no build edge |
+
+## Architecture
+
+<img src="docs/assets/overview.svg" width="100%" alt="Pipeline diagram: tsconfig.json and its extends targets are read through a Host, parsed by the recovering JSONC parser, merged by loadConfig with per-option provenance, checked by analyze against 56 rules, and printed by formatText or formatJson with an exit code.">
+
+*Diagram of the pipeline in `src/`: only the `Host` touches the file system.*
 
 ## `extends` chains are resolved properly
 
