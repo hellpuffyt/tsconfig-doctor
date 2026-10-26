@@ -3,6 +3,11 @@
 Diagnose the `tsconfig.json` settings that silently change what your code does,
 and explain the consequence of each rather than the setting.
 
+<img src="docs/assets/overview.svg" width="100%" alt="Pipeline diagram: tsconfig.json and its extends targets are read through a Host, parsed by the recovering JSONC parser, merged by loadConfig with per-option provenance, checked by analyze against 56 rules, and printed by formatText or formatJson with an exit code.">
+
+Status: version 0.1.0, not published to npm. Requires Node.js 20 or newer; CI
+runs the tests on Node 20, 22 and 24 on Ubuntu, Windows and macOS.
+
 ```bash
 git clone https://github.com/hellpuffyt/tsconfig-doctor.git
 cd tsconfig-doctor
@@ -42,7 +47,7 @@ warning  TSD029  paths
 
 A tsconfig is a list of switches, and the documentation for each one describes
 the switch. What you actually need to know is what changes *in your program*
-when it is off — and that is a different sentence.
+when it is off, and that is a different sentence.
 
 `allowSyntheticDefaultImports: true` without `esModuleInterop` is the example
 that made this tool. Every reference says the first flag "allows default imports
@@ -57,7 +62,7 @@ three is not in the tool:
 
 1. What does the compiler actually do differently?
 2. What breaks, or quietly changes meaning, as a result?
-3. What should be typed instead — or why the setting is defensible anyway?
+3. What should be typed instead, or why the setting is defensible anyway?
 
 The last one matters. `skipLibCheck: true` is reported, and the fix says it is a
 reasonable trade for an application and explains what to do instead if you
@@ -91,7 +96,7 @@ version-history claims for `TSD042`/`TSD082` were checked against TypeScript
 | `TSD007` | `strictBindCallApply` | `fn.call(this, 1, 2, 3)` is accepted whatever `fn` takes |
 | `TSD008` | `noImplicitThis` | `this` is `any` in exactly the functions whose receiver depends on the call site |
 | `TSD009` | `alwaysStrict` | Non-module files run in sloppy mode: assigning an undeclared name creates a global |
-| `TSD010` | `noUncheckedIndexedAccess` | `items[0]` is typed `T`, not `T \| undefined` — not part of `strict` |
+| `TSD010` | `noUncheckedIndexedAccess` | `items[0]` is typed `T`, not `T \| undefined`, and this check is not part of `strict` |
 | `TSD011` | `exactOptionalPropertyTypes` | `{ name: undefined }` satisfies `{ name?: string }`, which a `PATCH` layer reads as a deletion |
 | `TSD012` | `noImplicitOverride` | Renaming a base method leaves the subclass method behind as dead code |
 | `TSD013` | `noFallthroughCasesInSwitch` | A forgotten `break` produces a wrong answer rather than a crash |
@@ -109,7 +114,7 @@ version-history claims for `TSD042`/`TSD082` were checked against TypeScript
 | `TSD020` | `esModuleInterop` | `import * as express` is callable here and nowhere else; the code must be rewritten to move to ESM |
 | `TSD021` | `allowSyntheticDefaultImports` | Default imports type-check and are `undefined` at runtime |
 | `TSD022` | `moduleResolution` | `node`/`node10`/`classic` ignore the `exports` map, so you get an old build's types for the ESM code you run |
-| `TSD023` | `module` | Unset, it is derived from `target` — raising the target rewrites every file from `require` to `import` |
+| `TSD023` | `module` | Unset, it is derived from `target`, so raising the target rewrites every file from `require` to `import` |
 | `TSD024` | `verbatimModuleSyntax` | Type-only imports are elided, dropping side effects and diverging from esbuild's output |
 | `TSD025` | `isolatedModules` | Re-exported types and `const enum` pass `tsc` and break every transpile-only build |
 | `TSD026` | `moduleDetection` | Deleting the last `export` from a file turns its declarations into globals |
@@ -122,7 +127,7 @@ version-history claims for `TSD042`/`TSD082` were checked against TypeScript
 | Code | Option | What silently changes |
 | --- | --- | --- |
 | `TSD040` | `target` | Unset means **ES5**: `Promise` and `Object.entries` are undeclared and every class is rewritten |
-| `TSD041` | `target` | Below ES2020, syntax is rewritten — the report names only the rewrites your target performs |
+| `TSD041` | `target` | Below ES2020, syntax is rewritten; the report names only the rewrites your target performs |
 | `TSD042` | `target` | `es3` is rejected unless `ignoreDeprecations` (TS5107) up to 5.5, and removed (TS5108) from 5.6 |
 | `TSD043` | `useDefineForClassFields` | Class field semantics are decided by `target` alone, and flip at ES2022 |
 | `TSD044` | `outDir` | Compiled `.js` lands beside every source file |
@@ -154,7 +159,7 @@ version-history claims for `TSD042`/`TSD082` were checked against TypeScript
 | --- | --- | --- |
 | `TSD080` | `composite` | `tsc -p` ignores `references` entirely and checks the sources under *this* project's options |
 | `TSD081` | `declaration` | `composite` with `"declaration": false` is rejected (TS6304) |
-| `TSD082` | nine options | Deprecated in 5.0 (TS5101 unless `ignoreDeprecations`), removed in 5.6 (TS5102, not silenceable) — the build breaks on a compiler upgrade |
+| `TSD082` | nine options | Deprecated in 5.0 (TS5101 unless `ignoreDeprecations`), removed in 5.6 (TS5102, not silenceable), so the build breaks on a compiler upgrade |
 | `TSD083` | any | The option is not a compiler option at all and does nothing |
 | `TSD084` | `outDir`, `rootDir`, `baseUrl`, … | An inherited relative path still resolves against the base config's directory |
 | `TSD085` | `strict` | One line in a leaf config undoes the whole strict family the base advertises |
@@ -179,7 +184,7 @@ version-history claims for `TSD042`/`TSD082` were checked against TypeScript
 Most of the interesting mistakes are only visible after inheritance, so the
 loader implements TypeScript's merge rules rather than approximating them:
 
-- `compilerOptions` merge key by key, child wins — and values are **replaced,
+- `compilerOptions` merge key by key, child wins, and values are **replaced,
   not merged**, so an inherited `paths` or `lib` array is discarded whole the
   moment the child mentions it.
 - `files`, `include` and `exclude` are inherited, and likewise replaced.
@@ -202,7 +207,7 @@ warning  TSD084  outDir
 ```
 
 `extends` resolves relative paths, directories, `.json`-less specifiers, and
-package names looked up through `node_modules` walking upwards — so
+package names looked up through `node_modules` walking upwards, so
 `"extends": "@tsconfig/node20/tsconfig.json"` works, and so does a cycle, which
 is reported once instead of hanging.
 
@@ -213,7 +218,7 @@ written from scratch (this package has **zero runtime dependencies**) and it
 does two things a strict parser cannot:
 
 **It reads real files.** Line and block comments, trailing commas, a UTF-8 BOM.
-It also accepts single-quoted strings and unquoted keys — and reports them,
+It also accepts single-quoted strings and unquoted keys, and reports them,
 because `tsc` will not.
 
 **It recovers.** A missing comma is a diagnostic, not the end of the parse:
@@ -244,6 +249,8 @@ tsconfig-doctor [path] [options]
   --only CODES             comma-separated codes to report exclusively
   --width N                wrap prose at N columns (default 80)
   --list-rules             print every rule code and the option it inspects
+  -h, --help               show the usage text
+  -V, --version            print the version
 ```
 
 Exit code `0` means nothing at or above `--fail-on` (default `error`), `1` means
@@ -251,20 +258,22 @@ there was, and `2` means the arguments could not be understood. Adopting the
 tool on an existing project usually starts at `--fail-on error`, then
 `--fail-on warning` once those are cleared.
 
-`--json` output is stable and sorted, so it diffs between commits:
+`--json` output is stable and sorted, so it diffs between commits. Paths are
+absolute; this is `tsconfig-doctor examples --json --only TSD029` with the
+checkout directory shortened to `/repo`:
 
 ```json
 {
-  "file": "/repo/tsconfig.json",
-  "chain": ["/repo/tsconfig.json"],
-  "summary": { "error": 0, "warning": 3, "info": 0, "total": 3 },
+  "file": "/repo/examples/tsconfig.json",
+  "chain": ["/repo/examples/tsconfig.json"],
+  "summary": { "error": 0, "warning": 1, "info": 0, "total": 1 },
   "findings": [
     {
       "code": "TSD029",
       "severity": "warning",
       "title": "path aliases survive into the emitted JavaScript unchanged, and fail at runtime",
       "option": "paths",
-      "file": "/repo/tsconfig.json",
+      "file": "/repo/examples/tsconfig.json",
       "line": 22,
       "column": 5,
       "consequence": "...",
@@ -278,7 +287,9 @@ tool on an existing project usually starts at `--fail-on error`, then
 
 The analysis core is pure. It takes a resolved config and returns findings; it
 never reads a file, which is why the whole rule set can be exercised against
-configs held in memory.
+configs held in memory. Because the package is not on npm, the import below
+resolves only after `npm link` (or `npm link tsconfig-doctor` inside your
+project), or with this repository installed from a local path.
 
 ```ts
 import { analyze, createMemoryHost, loadConfig } from 'tsconfig-doctor';
@@ -294,7 +305,16 @@ for (const finding of analyze(loadConfig('/p/tsconfig.json', host))) {
 }
 ```
 
-`Host` is a single method — `readFile(path): string | undefined` — so the loader
+The base config sets only `strict`, so the leaf still gets findings such as:
+
+```
+warning TSD010: indexing an array or record is typed as always succeeding
+  declared in /p/tsconfig.json
+warning TSD040: the target defaults to ES5, so modern syntax is rewritten and modern globals are missing
+  declared in /p/tsconfig.json
+```
+
+`Host` is a single method, `readFile(path): string | undefined`, so the loader
 can be pointed at a virtual file system, a git object store, or `node:fs` via
 `createNodeHost`. The JSONC parser (`parseJsonc`, with full location
 information) and the reporters (`formatText`, `formatJson`) are exported
@@ -303,8 +323,9 @@ separately, because each is useful on its own.
 ## This repository is its own test case
 
 `tsconfig.json` and `tsconfig.build.json` here are asserted to produce **no
-findings at all** — by a unit test, and again by a CI job that installs the
-built package and runs the real console script against them.
+findings at all**: by a unit test (`test/package.test.ts`), and again by a CI
+job that builds the package and runs `node dist/bin.js` against them. The same
+job asserts that `examples/` exits 1 under `--fail-on warning`.
 
 `tsconfig.test.json` is not clean, on purpose. It sets `skipLibCheck`, and
 `TSD017` reports it. The reason is in the file: with
@@ -312,7 +333,7 @@ built package and runs the real console script against them.
 type-check against `rollup`'s, because `Plugin.load` takes an optional property
 that one side declares `boolean` and the other `boolean | undefined`. That is a
 real error in a dependency's shipped `.d.ts`, found by the very check that
-`skipLibCheck` turns off — which is the finding's own argument, demonstrated.
+`skipLibCheck` turns off. That is the finding's own argument, demonstrated.
 Splitting it into its own config keeps the suppression scoped to the files that
 need it rather than to the whole project.
 
@@ -330,6 +351,19 @@ npm run build        # tsc -p tsconfig.build.json
 See [CONTRIBUTING.md](CONTRIBUTING.md) for the design constraints a change has
 to respect, and for how to add a rule.
 
+## Limitations
+
+- It reads configuration only. It does not run `tsc` or look at your source
+  files, so a finding says what a setting does, not whether your code hits it.
+- The rule text is written against TypeScript 5.x. Version-specific claims name
+  the versions they were checked on.
+- Not published to npm (see above), so there is no `npx` route.
+
+## Security
+
+The tool reads config files and never executes anything from them. Report
+vulnerabilities privately as described in [SECURITY.md](SECURITY.md).
+
 ## License
 
-MIT — see [LICENSE](LICENSE).
+MIT. See [LICENSE](LICENSE).
